@@ -1,0 +1,13 @@
+﻿@using E_commerce.Utility
+@{
+    if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
+    {
+        Layout = "_AdminLayout";
+    }
+    else
+    {
+        Layout = "_Layout";
+
+    }
+ 
+}

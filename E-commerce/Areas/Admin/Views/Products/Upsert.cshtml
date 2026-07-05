@@ -1,0 +1,353 @@
+﻿
+@* @model ProductVM
+@{
+    ViewData["Title"] = "Upsert";
+}
+<form method="post" asp-action="Upsert" enctype="multipart/form-data">
+
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <div class="row mt-4">
+
+        <!-- Form Section -->
+        <div class="col-lg-8">
+
+            <div class="col-12 text-center">
+                <h2 class="text-white py-2"> @(Model.Product.Id != 0 ? "Update" : "Create") Product</h2>
+            </div>
+
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <input asp-for="Product.Id" hidden />
+                <input asp-for="Product.ImageUrl" hidden />
+                <!-- Title -->
+                <div class="form-floating mb-3">
+                    <input asp-for="Product.Title" class="form-control" />
+                    <label asp-for="Product.Title"></label>
+                    <span asp-validation-for="Product.Title" class="text-danger"></span>
+                </div>
+
+            <!-- Description -->
+            <div class="mb-3">
+
+                <label asp-for="Product.Description" class="form-label fw-semibold"></label>
+
+                <!-- Quill Editor -->
+                <div id="quill-editor" style="height:250px;"></div>
+
+                <!-- Hidden TextArea -->
+                <textarea asp-for="Product.Description" hidden></textarea>
+
+                <span asp-validation-for="Product.Description" class="text-danger"></span>
+
+            </div>
+
+                <!-- ISBN -->
+                <div class="form-floating mb-3">
+                    <input asp-for="Product.ISBN" class="form-control" />
+                    <label asp-for="Product.ISBN"></label>
+                    <span asp-validation-for="Product.ISBN" class="text-danger"></span>
+                </div>
+
+                <!-- Author -->
+                <div class="form-floating mb-3">
+                    <input asp-for="Product.Author" class="form-control" />
+                    <label asp-for="Product.Author"></label>
+                    <span asp-validation-for="Product.Author" class="text-danger"></span>
+                </div>
+
+                <!-- Prices -->
+                <div class="row">
+
+                    <div class="col-md-6">
+                        <div class="form-floating mb-3">
+                            <input asp-for="Product.ListPrice" class="form-control" />
+                            <label asp-for="Product.ListPrice"></label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-floating mb-3">
+                            <input asp-for="Product.Price" class="form-control" />
+                            <label asp-for="Product.Price"></label>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="row">
+
+                    <div class="col-md-6">
+                        <div class="form-floating mb-3">
+                            <input asp-for="Product.Price50" class="form-control" />
+                            <label asp-for="Product.Price50"></label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-floating mb-3">
+                            <input asp-for="Product.Price100" class="form-control" />
+                            <label asp-for="Product.Price100"></label>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Category -->
+                <div class="form-floating py-2 col-12">
+                    <select asp-for="Product.CategoryId"
+                            asp-items="@Model.Categories"
+                            class="form-select border-0 shadow">
+
+                        <option value="">--Select Category--</option>
+
+                    </select>
+
+                    <label asp-for="Product.CategoryId" class="ms-2"></label>
+
+                    <span asp-validation-for="Product.CategoryId"
+                          class="text-danger"></span>
+                </div>
+
+                <!-- Upload Image -->
+                <div class="form-floating py-2 col-12">
+
+                    <input type="file"
+                           name="file"
+                           accept="image/*"
+                           class="form-control border-0 shadow" />
+
+                    <label asp-for="Product.ImageUrl" class="ms-2"></label>
+
+                </div>
+
+                <!-- Buttons -->
+    
+            <div class="row pt-2">
+                <div class="form-actions mt-4">
+                    @if (Model.Product.Id != 0)
+                    {
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-circle"></i>
+                        Update
+                    </button>
+                    }
+                    else
+                    {
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i>
+                            Create
+                        </button>
+                    }
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left-circle"></i>
+                        Back
+                    </a>
+                </div>
+               
+            </div>
+
+            
+
+        </div>
+
+        <!-- Image Section -->
+        <div class="col-lg-4">
+
+            @if (Model.Product.ImageUrl != null)
+            {
+                <div class="card shadow-sm border-0 p-3 text-center">
+
+                    <img src="@Model.Product.ImageUrl"
+                         class="img-fluid rounded shadow-sm mb-2"
+                         style="max-height:400px; object-fit:cover;" />
+
+                    <a asp-action="DeleteImage"
+                       asp-route-imageId="@Model.Product.Id"
+                       class="btn btn-danger btn-sm">
+
+                        <i class="bi bi-trash-fill"></i> Delete
+
+                    </a>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</form>
+
+@section Scripts
+{
+    <!-- Quill CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet" />
+
+    <!-- Quill JS -->
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            // تشغيل Quill
+            const quill = new Quill('#quill-editor', {
+                theme: 'snow'
+            });
+
+            // textarea الحقيقية
+            const textArea = document.querySelector('#Product_Description');
+
+            // لو فيه داتا قديمة (Edit)
+            quill.root.innerHTML = textArea.value;
+
+            // تحديث textarea تلقائي
+            quill.on('text-change', function () {
+                textArea.value = quill.root.innerHTML;
+            });
+        });
+    </script>
+
+    <partial name="_ValidationScriptsPartial" />
+} *@
+@model ProductVM
+
+<div class="container-fluid py-3">
+    <a asp-action="Index" class="text-decoration-none text-secondary small fw-medium d-inline-flex align-items-center gap-1 mb-3">
+        <i class="bi bi-arrow-left"></i> Back to products
+    </a>
+    <div class="card border shadow-sm overflow-hidden">
+        <div class="card-header text-white py-3 px-4" style="background: linear-gradient(to right, #065f46, #282828, #191414);">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-plus-lg me-2"></i>@(Model.Product.Id != 0 ? "Edit" : "Create") Product</h5>
+            <p class="mb-0 small" style="color: #1DB954;">
+                @(Model.Product.Id != 0 ? "Edit Product Details" : "Add a new Product")
+            </p>
+        </div>
+        <div class="card-body p-4">
+            <form method="post" enctype="multipart/form-data">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                        <input asp-for="Product.Id" hidden />
+                        <input asp-for="Product.ImageUrl" hidden />
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label asp-for="Product.Title" class="form-label fw-semibold small"></label>
+                                <input type="text" asp-for="Product.Title" class="form-control" placeholder="Enter product name" />
+                                <span asp-validation-for="Product.Title" class="text-danger small"></span>
+                            </div>
+                            <div class="col-12">
+                                <label asp-for="Product.Description" class="form-label fw-semibold small"></label>
+                                <textarea asp-for="Product.Description" hidden class="form-control" placeholder="Enter product desc"></textarea>
+                                <div id="quill-editor" style="height: 200px;"></div>
+                                <span asp-validation-for="Product.Description" class="text-danger small"></span>
+                            </div>
+                            <div class="col-6">
+                                <label asp-for="Product.ISBN" class="form-label fw-semibold small"></label>
+                                <input type="text" asp-for="Product.ISBN" class="form-control" placeholder="Enter ISBN" />
+                                <span asp-validation-for="Product.ISBN" class="text-danger small"></span>
+                            </div>
+                            <div class="col-6">
+                                <label asp-for="Product.Author" class="form-label fw-semibold small"></label>
+                                <input type="text" asp-for="Product.Author" class="form-control" placeholder="Enter author name" />
+                                <span asp-validation-for="Product.Author" class="text-danger small"></span>
+                            </div>
+                        </div>
+                        <div class="border rounded p-3 mt-3 bg-light">
+                            <p class="text-uppercase fw-semibold text-secondary mb-3" style="font-size: 0.65rem; letter-spacing: 0.1em;">Pricing</p>
+                            <div class="row g-3">
+                                <div class="col-6 col-md-3">
+                                    <label asp-for="Product.ListPrice" class="form-label fw-semibold small"></label>
+                                    <input type="text" asp-for="Product.ListPrice" class="form-control" />
+                                    <span asp-validation-for="Product.ListPrice" class="text-danger small"></span>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <label asp-for="Product.Price" class="form-label fw-semibold small"></label>
+                                    <input type="text" asp-for="Product.Price" class="form-control" />
+                                    <span asp-validation-for="Product.Price" class="text-danger small"></span>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <label asp-for="Product.Price50" class="form-label fw-semibold small"></label>
+                                    <input type="text" asp-for="Product.Price50" class="form-control" />
+                                    <span asp-validation-for="Product.Price50" class="text-danger small"></span>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <label asp-for="Product.Price100" class="form-label fw-semibold small"></label>
+                                    <input type="text" asp-for="Product.Price100" class="form-control" />
+                                    <span asp-validation-for="Product.Price100" class="text-danger small"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <label asp-for="Product.CategoryId" class="form-label fw-semibold small"></label>
+                            <select asp-for="Product.CategoryId" asp-items="@Model.Categories" class="form-select">
+                                <option disabled selected>--Select Category--</option>
+                            </select>
+                            <span asp-validation-for="Product.CategoryId" class="text-danger small"></span>
+                        </div>
+                        <div class="mt-3">
+                            <label class="form-label fw-semibold small">Product Image</label>
+                            <div class="border border-2 border-dashed rounded p-4 text-center">
+                                <i class="bi bi-cloud-upload fs-4 text-secondary"></i>
+                                <input type="file" name="file" accept="image/*" class="form-control form-control-sm mt-2" />
+                                <p class="text-secondary mt-1 mb-0" style="font-size: 0.75rem;">Upload a single product image (JPG, PNG)</p>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2 mt-3">
+                            <button type="submit" class="btn btn-accent fw-semibold">@(Model.Product.Id != 0 ? "Edit" : "Create") Product</button>
+                            <a asp-controller="Products" asp-action="Index" class="btn btn-light fw-medium">Cancel</a>
+                        </div>
+
+                    </div>
+                    <div class="col-lg-4">
+                        <!--image-->
+                        @if (!string.IsNullOrEmpty(Model.Product.ImageUrl))
+                        {
+                            <div class="border rounded p-3 bg-light text-center">
+                                <p class="text-uppercase fw-semibold text-secondary mb-2" style="font-size: 0.65rem; letter-spacing: 0.1em;">Current Image</p>
+                                <img src="@Model.Product.ImageUrl" class="img-fluid rounded shadow-sm mb-2" />
+                                <p class="text-secondary mb-0" style="font-size: 0.75rem;">Upload a new image to replace this one</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="border rounded p-3 bg-light text-center">
+                                <p class="text-uppercase fw-semibold text-secondary mb-2" style="font-size: 0.65rem; letter-spacing: 0.1em;">Current Image</p>
+                                <i class="bi bi-image" style="font-size: 3rem; color: #94a3b8;"></i>
+                                <p class="text-secondary mb-0" style="font-size: 0.75rem;">No Image</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+
+    <!-- Include stylesheet -->
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+
+
+    <!-- Create the editor container -->
+    <!-- Include the Quill library -->
+    <!-- Initialize Quill editor -->
+    <script>
+        const quill = new Quill('#quill-editor', {
+        theme: 'snow'
+        });
+
+        const textAreaDesc = document.querySelector('textarea[name="Product.Description"]');
+
+        //load existing content and auto-sync
+        if(textAreaDesc.value) quill.root.innerHTML = textAreaDesc.value;
+
+        quill.on('text-change',()=> textAreaDesc.value = quill.root.innerHTML);
+    </script>
+
+}
